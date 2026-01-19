@@ -1,0 +1,38 @@
+name: XServer Extend Schedule
+
+on:
+  schedule:
+    - cron: '0 0 * * *' # Runs every 24 hours at 00:00 UTC
+  workflow_dispatch: # Allows manual trigger
+
+jobs:
+  extend-server:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+
+    - name: Install dependencies
+      run: npm install
+
+    - name: Install Playwright Browsers
+      run: npx playwright install --with-deps chrome
+
+    - name: Run Extension Script
+      env:
+        USERS_JSON: ${{ secrets.USERS_JSON }}
+      run: node action.js
+
+    - name: Upload Screenshots
+      if: always() # Run even if the script fails
+      uses: actions/upload-artifact@v4
+      with:
+        name: screenshots
+        path: "*.png"
+        retention-days: 5
